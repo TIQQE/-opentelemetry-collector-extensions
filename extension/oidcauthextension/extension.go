@@ -45,7 +45,6 @@ type oidcExtension struct {
 }
 
 var (
-	errNoAudienceProvided                = errors.New("no Audience provided for the OIDC configuration")
 	errNoIssuerURL                       = errors.New("no IssuerURL provided for the OIDC configuration")
 	errInvalidAuthenticationHeaderFormat = errors.New("invalid authorization header format")
 	errFailedToObtainClaimsFromToken     = errors.New("failed to get the subject from the token issued by the OIDC provider")
@@ -56,9 +55,6 @@ var (
 )
 
 func newExtension(cfg *Config, logger *zap.Logger) (configauth.ServerAuthenticator, error) {
-	if cfg.Audience == "" {
-		return nil, errNoAudienceProvided
-	}
 	if cfg.IssuerURL == "" {
 		return nil, errNoIssuerURL
 	}
@@ -82,7 +78,8 @@ func (e *oidcExtension) start(context.Context, component.Host) error {
 	e.provider = provider
 
 	e.verifier = e.provider.Verifier(&oidc.Config{
-		ClientID: e.cfg.Audience,
+		ClientID:          "",
+		SkipClientIDCheck: true,
 	})
 
 	return nil
