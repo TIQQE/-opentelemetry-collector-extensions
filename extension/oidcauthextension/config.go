@@ -29,7 +29,7 @@ type Config struct {
 
 	// Audience of the token, used during the verification.
 	// For example: "https://accounts.google.com" or "https://login.salesforce.com".
-	// Required.
+	// Optional.
 	Audience string `mapstructure:"audience"`
 
 	// The local path for the issuer CA's TLS server cert.

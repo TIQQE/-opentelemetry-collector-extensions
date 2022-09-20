@@ -1,8 +1,9 @@
-module github.com/open-telemetry/opentelemetry-collector-contrib
+module github.com/TIQQE/opentelemetry-collector-contrib
 
 go 1.18
 
 require (
+	github.com/open-telemetry/opentelemetry-collector-contrib v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/alibabacloudlogserviceexporter v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awscloudwatchlogsexporter v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsemfexporter v0.60.0
@@ -272,7 +273,6 @@ require (
 	github.com/denisenkom/go-mssqldb v0.12.2 // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
-	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/digitalocean/godo v1.82.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v20.10.18+incompatible // indirect
