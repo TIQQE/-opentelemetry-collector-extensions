@@ -1,9 +1,0 @@
-flatten_attributes:
-  type: flatten
-  field: attributes.errField
-flatten_one_level:
-  type: flatten
-  field: body.nested
-flatten_second_level:
-  type: flatten
-  field: body.nested.secondlevel
