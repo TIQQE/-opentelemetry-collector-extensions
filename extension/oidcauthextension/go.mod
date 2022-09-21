@@ -1,4 +1,4 @@
-module github.com/TIQQE/opentelemetry-collector-contrib/extension/oidcauthextension
+module github.com/TIQQE/opentelemetry-collector-extensions/extension/oidcauthextension
 
 go 1.18
 
