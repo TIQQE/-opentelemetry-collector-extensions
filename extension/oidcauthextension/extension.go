@@ -180,15 +180,15 @@ func getProviderForConfig(config *Config) (*oidc.Provider, error) {
 	t := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 10 * time.Second,
+			Timeout:   10 * time.Second,
+			KeepAlive: 15 * time.Second,
 			DualStack: true,
 		}).DialContext,
 		ForceAttemptHTTP2:     true,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   5 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 5 * time.Second,
 	}
 
 	cert, err := getIssuerCACertFromPath(config.IssuerCAPath)
@@ -204,7 +204,7 @@ func getProviderForConfig(config *Config) (*oidc.Provider, error) {
 	}
 
 	client := &http.Client{
-		Timeout:   5 * time.Second,
+		Timeout:   10 * time.Second,
 		Transport: t,
 	}
 	oidcContext := oidc.ClientContext(context.Background(), client)
