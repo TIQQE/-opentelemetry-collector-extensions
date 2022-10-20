@@ -189,6 +189,7 @@ func getProviderForConfig(config *Config) (*oidc.Provider, error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 5 * time.Second,
+		ResponseHeaderTimeout: 60 * time.Second,
 	}
 
 	cert, err := getIssuerCACertFromPath(config.IssuerCAPath)
