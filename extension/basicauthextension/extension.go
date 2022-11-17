@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"go.opentelemetry.io/collector/client"
@@ -76,28 +75,28 @@ func newServerAuthExtension(cfg *Config) (configauth.ServerAuthenticator, error)
 func (ba *basicAuth) serverStart(ctx context.Context, host component.Host) error {
 	var rs []io.Reader
 
-	if ba.htpasswd.File != "" {
-		f, err := os.Open(ba.htpasswd.File)
-		if err != nil {
-			return fmt.Errorf("open htpasswd file: %w", err)
-		}
-		defer f.Close()
-
-		rs = append(rs, f)
-		rs = append(rs, strings.NewReader("\n"))
-	}
+	//if ba.htpasswd.File != "" {
+	//	f, err := os.Open(ba.htpasswd.File)
+	//	if err != nil {
+	//		return fmt.Errorf("open htpasswd file: %w", err)
+	//	}
+	//	defer f.Close()
+	//
+	//	rs = append(rs, f)
+	//	rs = append(rs, strings.NewReader("\n"))
+	//}
 
 	// Ensure that the inline content is read the last.
 	// This way the inline content will override the content from file.
 	rs = append(rs, strings.NewReader(ba.htpasswd.Inline))
-	mr := io.MultiReader(rs...)
-
-	htp, err := htpasswd.NewFromReader(mr, htpasswd.DefaultSystems, nil)
-	if err != nil {
-		return fmt.Errorf("read htpasswd content: %w", err)
-	}
-
-	ba.matchFunc = htp.Match
+	//mr := io.MultiReader(rs...)
+	//
+	//htp, err := htpasswd.NewFromReader(mr, htpasswd.DefaultSystems, nil)
+	//if err != nil {
+	//	return fmt.Errorf("read htpasswd content: %w", err)
+	//}
+	//
+	//ba.matchFunc = htp.Match
 
 	return nil
 }
