@@ -25,7 +25,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tg123/go-htpasswd"
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configauth"
@@ -108,6 +107,7 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	fmt.Println("===headers====")
 	bs, _ := json.Marshal(headers)
 	fmt.Println(string(bs))
+
 	auth := getAuthHeader(headers)
 	if auth == "" {
 		return ctx, errNoAuth
