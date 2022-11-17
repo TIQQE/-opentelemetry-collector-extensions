@@ -109,14 +109,17 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 
 	//test server
 	var secretKey = "GolangIsAwesome!"
-	clientHash := headers["Basic Authorization"][0]
+	clientHash := headers["hash"][0]
 	clientData := headers["data"][0]
 
 	hashS := Sign([]byte(clientData), []byte(secretKey))
 	fmt.Println("Server : ", hashS)
 
-	if clientHash == hashS {
+	isValid, _ := Verify([]byte(clientHash), []byte(secretKey), hashS)
+	if isValid {
 		println("AUTH SUCCESS")
+	} else {
+		println("AUTH FAIL")
 	}
 
 	auth := getAuthHeader(headers)
