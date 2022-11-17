@@ -117,24 +117,25 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 		println("AUTH SUCCESS")
 	} else {
 		println("AUTH FAIL")
-	}
-
-	auth := getAuthHeader(headers)
-	if auth == "" {
-		return ctx, errNoAuth
-	}
-
-	authData, err := parseBasicAuth(auth)
-	if err != nil {
-		return ctx, err
-	}
-
-	if !ba.matchFunc(authData.username, authData.password) {
 		return ctx, errInvalidCredentials
 	}
 
+	//auth := getAuthHeader(headers)
+	//if auth == "" {
+	//	return ctx, errNoAuth
+	//}
+	//
+	//authData, err := parseBasicAuth(auth)
+	//if err != nil {
+	//	return ctx, err
+	//}
+	//
+	//if !ba.matchFunc(authData.username, authData.password) {
+	//	return ctx, errInvalidCredentials
+	//}
+
 	cl := client.FromContext(ctx)
-	cl.Auth = authData
+	//cl.Auth = authData
 	return client.NewContext(ctx, cl), nil
 }
 
