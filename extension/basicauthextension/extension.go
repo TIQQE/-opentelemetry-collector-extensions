@@ -112,10 +112,7 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	clientHash := headers["hash"][0]
 	clientData := headers["data"][0]
 
-	hashS := Sign([]byte(clientData), []byte(secretKey))
-	fmt.Println("Server : ", hashS)
-
-	isValid, _ := Verify([]byte(clientHash), []byte(secretKey), hashS)
+	isValid, _ := Verify([]byte(clientData), []byte(secretKey), clientHash)
 	if isValid {
 		println("AUTH SUCCESS")
 	} else {
