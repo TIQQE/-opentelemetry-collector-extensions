@@ -107,6 +107,18 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	bs, _ := json.Marshal(headers)
 	fmt.Println(string(bs))
 
+	//test server
+	var secretKey = "GolangIsAwesome!"
+	clientHash := headers["Basic Authorization"][0]
+	clientData := headers["data"][0]
+
+	hashS := Sign([]byte(clientData), []byte(secretKey))
+	fmt.Println("Server : ", hashS)
+
+	if clientHash == hashS {
+		println("AUTH SUCCESS")
+	}
+
 	auth := getAuthHeader(headers)
 	if auth == "" {
 		return ctx, errNoAuth
@@ -151,6 +163,8 @@ func getAuthHeader(h map[string][]string) string {
 		return ""
 	}
 
+	println("===authHeaders[0]====")
+	println(authHeaders[0])
 	return authHeaders[0]
 }
 
