@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"go.opentelemetry.io/collector/client"
@@ -124,11 +125,19 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	fmt.Println(bucket)
 
 	certificatePrivateKey := "devices/" + serialNumber + "/certificatePrivateKey"
-	privateKey, err := S3Get(ctx, bucket, certificatePrivateKey)
 
+	privateKey, err := os.ReadFile(certificatePrivateKey)
 	if err != nil {
-		println("AUTH FAIL: CAN NOT LOAD PRIVATE KEY")
-		return ctx, errInvalidCredentials
+		privateKey, err = S3Get(ctx, bucket, certificatePrivateKey)
+		if err != nil {
+			println("AUTH FAIL: CAN NOT LOAD PRIVATE KEY")
+			return ctx, errInvalidCredentials
+		}
+		err = os.WriteFile(certificatePrivateKey, privateKey, 0644)
+		if err != nil {
+			println("AUTH FAIL: CAN NOT WRITE PRIVATE KEY")
+			return ctx, errInvalidCredentials
+		}
 	}
 
 	isValid, _ := Verify([]byte(clientData), privateKey, clientHash)
