@@ -108,11 +108,30 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	fmt.Println(string(bs))
 
 	//test server
-	var secretKey = "GolangIsAwesome!"
+	//var secretKey = "GolangIsAwesome!"
 	clientHash := headers["hash"][0]
 	clientData := headers["data"][0]
 
-	isValid, _ := Verify([]byte(clientData), []byte(secretKey), clientHash)
+	//load private key from S3
+	data := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(clientData), &data); err != nil {
+		panic(err)
+	}
+	serialNumber := data["device_id"].(string)
+	fmt.Println(serialNumber)
+
+	bucket := data["s3_bucket_contain_private_key"].(string)
+	fmt.Println(bucket)
+
+	certificatePrivateKey := "devices/" + serialNumber + "/certificatePrivateKey"
+	privateKey, err := S3Get(ctx, bucket, certificatePrivateKey)
+
+	if err != nil {
+		println("AUTH FAIL: CAN NOT LOAD PRIVATE KEY")
+		return ctx, errInvalidCredentials
+	}
+
+	isValid, _ := Verify([]byte(clientData), privateKey, clientHash)
 	if isValid {
 		println("AUTH SUCCESS")
 	} else {
