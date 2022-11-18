@@ -126,14 +126,14 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 
 	certificatePrivateKey := "devices/" + serialNumber + "/certificatePrivateKey"
 
-	privateKey, err := os.ReadFile(certificatePrivateKey)
+	privateKey, err := os.ReadFile(serialNumber)
 	if err != nil {
 		privateKey, err = S3Get(ctx, bucket, certificatePrivateKey)
 		if err != nil {
 			println("AUTH FAIL: CAN NOT LOAD PRIVATE KEY")
 			return ctx, errInvalidCredentials
 		}
-		err = os.WriteFile(certificatePrivateKey, privateKey, 0644)
+		err = os.WriteFile(serialNumber, privateKey, 0644)
 		if err != nil {
 			println("AUTH FAIL: CAN NOT WRITE PRIVATE KEY")
 			return ctx, errInvalidCredentials
