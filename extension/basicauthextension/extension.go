@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"go.opentelemetry.io/collector/client"
@@ -110,37 +109,11 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 
 	//test server
 	//var secretKey = "GolangIsAwesome!"
-	clientHash := headers["hash"][0]
-	clientData := headers["data"][0]
+	clientSignature := headers["signature"][0]
+	clientThingName := headers["thing_name"][0]
+	clientMessage := headers["message"][0]
 
-	//load private key from S3
-	data := map[string]interface{}{}
-	if err := json.Unmarshal([]byte(clientData), &data); err != nil {
-		panic(err)
-	}
-	serialNumber := data["device_id"].(string)
-	fmt.Println(serialNumber)
-
-	bucket := data["s3_bucket_contain_private_key"].(string)
-	fmt.Println(bucket)
-
-	certificatePrivateKey := "devices/" + serialNumber + "/certificatePrivateKey"
-
-	privateKey, err := os.ReadFile(serialNumber)
-	if err != nil {
-		privateKey, err = S3Get(ctx, bucket, certificatePrivateKey)
-		if err != nil {
-			println("AUTH FAIL: CAN NOT LOAD PRIVATE KEY")
-			return ctx, errInvalidCredentials
-		}
-		err = os.WriteFile(serialNumber, privateKey, 0644)
-		if err != nil {
-			println("AUTH FAIL: CAN NOT WRITE PRIVATE KEY")
-			return ctx, errInvalidCredentials
-		}
-	}
-
-	isValid, _ := Verify([]byte(clientData), privateKey, clientHash)
+	isValid := VerifyClient(clientThingName, clientMessage, clientSignature)
 	if isValid {
 		println("AUTH SUCCESS")
 	} else {
