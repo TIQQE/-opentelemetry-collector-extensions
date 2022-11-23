@@ -1,6 +1,7 @@
 package basicauthextension
 
 import (
+	"context"
 	"crypto"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -8,14 +9,16 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"github.com/aws/aws-sdk-go/service/iot"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
 )
 
 var (
-	IOTclient *iot.IoT
+	IOTclient *iot.Client
 )
 
 func initIOTClient() {
@@ -23,27 +26,29 @@ func initIOTClient() {
 		return
 	}
 
-	s := GetSession()
-	IOTclient = iot.New(s)
+	cfg, _ := config.LoadDefaultConfig(context.TODO(),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("IOT_AWS_ACCESS_KEY_ID"), os.Getenv("IOT_AWS_SECRET_ACCESS_KEY"), "")),
+	)
+	IOTclient = iot.NewFromConfig(cfg)
 }
 
 func ListThingPrincipals(thingName string) (string, error) {
 	initIOTClient()
 	b := iot.ListThingPrincipalsInput{ThingName: &thingName}
 
-	test, err := IOTclient.ListThingPrincipals(&b)
+	test, err := IOTclient.ListThingPrincipals(context.TODO(), &b)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to ListThingPrincipals")
 	}
 	println("ListThingPrincipals success")
-	return strings.Split(*test.Principals[0], "/")[1], nil
+	return strings.Split(test.Principals[0], "/")[1], nil
 }
 
 func DescribeCertificate(certificateId string, thingName string) ([]byte, error) {
 	initIOTClient()
 	b := iot.DescribeCertificateInput{CertificateId: &certificateId}
 
-	test, err := IOTclient.DescribeCertificate(&b)
+	test, err := IOTclient.DescribeCertificate(context.TODO(), &b)
 	if err != nil {
 		return []byte(""), errors.Wrap(err, "Unable to DescribeCertificate")
 	}
