@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/CodeCollaborate/Server/utils"
 	"github.com/aws/aws-sdk-go/service/iot"
 	"github.com/pkg/errors"
 	"os"
@@ -108,7 +107,7 @@ func VerifyClient(thingName string, message string, signature string) bool {
 func getPublicKeyByThingName(thingName string) (*rsa.PublicKey, error) {
 	certificate, err := GetCertificateByThingName(thingName)
 	if err != nil {
-		utils.LogWarn("No RSA public key found, generating temp one", nil)
+		errors.Wrap(err, "Unable to getPublicKeyByThingName")
 	}
 	block, _ := pem.Decode(certificate)
 	var cert *x509.Certificate
