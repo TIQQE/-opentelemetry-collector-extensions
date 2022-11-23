@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/iot"
@@ -93,7 +94,8 @@ func VerifyClient(thingName string, message string, signature string) bool {
 	// To verify the signature, we provide the public key, the hashing algorithm
 	// the hash sum of our message and the signature we generated previously
 	// there is an optional "options" parameter which can omit for now
-	err = rsa.VerifyPSS(publicKey, crypto.SHA256, msgHashSum, []byte(signature), nil)
+	sig, _ := hex.DecodeString(signature)
+	err = rsa.VerifyPSS(publicKey, crypto.SHA256, msgHashSum, sig, nil)
 	if err != nil {
 		fmt.Println("could not verify signature: ", err)
 		return false
