@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tiqqe/go-logger"
 	"io"
 	"net/http"
 	"strings"
@@ -102,41 +103,23 @@ func (ba *basicAuth) serverStart(ctx context.Context, host component.Host) error
 }
 
 func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]string) (context.Context, error) {
-
-	fmt.Println("===headers====")
 	bs, _ := json.Marshal(headers)
-	fmt.Println(string(bs))
+	logger.InfoString("===HEADERS===")
+	logger.InfoString(string(bs))
 
-	//test server
-	//var secretKey = "GolangIsAwesome!"
 	clientSignature := headers["signature"][0]
-	clientThingName := headers["thing_name"][0]
+	clientThingName := headers["thing-name"][0]
 	clientMessage := headers["message"][0]
 
 	isValid := VerifyClient(clientThingName, clientMessage, clientSignature)
 	if isValid {
-		println("AUTH SUCCESS")
+		logger.InfoString("===AUTH SUCCESS===")
 	} else {
-		println("AUTH FAIL")
+		logger.InfoString("===AUTH FAIL===")
 		return ctx, errInvalidCredentials
 	}
 
-	//auth := getAuthHeader(headers)
-	//if auth == "" {
-	//	return ctx, errNoAuth
-	//}
-	//
-	//authData, err := parseBasicAuth(auth)
-	//if err != nil {
-	//	return ctx, err
-	//}
-	//
-	//if !ba.matchFunc(authData.username, authData.password) {
-	//	return ctx, errInvalidCredentials
-	//}
-
 	cl := client.FromContext(ctx)
-	//cl.Auth = authData
 	return client.NewContext(ctx, cl), nil
 }
 

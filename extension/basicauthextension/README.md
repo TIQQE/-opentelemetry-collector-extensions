@@ -1,68 +1,47 @@
-# Basic Authenticator
+# Basic Authenticator with private/public solution
 
-| Status                   |                      |
-| ------------------------ |----------------------|
-| Stability                | [beta]               |
-| Supported pipeline types | trace, metrics, logs |
-| Distributions            | [contrib]            |
-
-This extension implements both `configauth.ServerAuthenticator` and `configauth.ClientAuthenticator` to authenticate clients and servers using Basic Authentication. The authenticator type has to be set to `basicauth`.
-
-When used as ServerAuthenticator, if the authentication is successful `client.Info.Auth` will expose the following attributes:
-
-- `username`: The username of the authenticated user.
-- `raw`: Raw base64 encoded credentials.
-
-The configuration should specify only one instance of `basicauth` extension for either client or server authentication. 
-
-The following are the configuration options:
-
-- `htpasswd.file`:  The path to the htpasswd file.
-- `htpasswd.inline`: The htpasswd file inline content.
-- `client_auth.username`: Username to use for client authentication.
-- `client_auth.password`: Password to use for client authentication.
-
-To configure the extension as a server authenticator, either one of `htpasswd.file` or `htpasswd.inline` has to be set. If both are configured, `htpasswd.inline` credentials take precedence.
-
-To configure the extension as a client authenticator, `client_auth` has to be set.
-
-If both the options are configured, the extension will throw an error.
 ## Configuration
 
 ```yaml
 extensions:
+  health_check:
   basicauth/server:
-    htpasswd: 
-      file: .htpasswd
+    htpasswd:
       inline: |
-        ${BASIC_AUTH_USERNAME}:${BASIC_AUTH_PASSWORD}
-  
-  basicauth/client:
-    client_auth: 
-      username: username
-      password: password
-
+        NONE:NONE
 receivers:
   otlp:
     protocols:
-      http:
+      grpc:
+        endpoint: 0.0.0.0:4317
         auth:
           authenticator: basicauth/server
 
 processors:
+  groupbytrace:
+  batch/traces:
+    timeout: 10s
+  batch/metrics:
+    timeout: 10s
 
 exporters:
-  otlp:
-    auth:
-      authenticator: basicauth/client
+  awsxray:
+    region: eu-north-1
+    index_all_attributes: true
+  awsemf:
 
 service:
-  extensions: [basicauth/server, basicauth/client]
+  extensions: [health_check, basicauth/server]
   pipelines:
     traces:
       receivers: [otlp]
-      processors: []
-      exporters: [otlp]
+      processors: [groupbytrace,batch/traces]
+      exporters: [awsxray]
+    metrics:
+      receivers: [otlp]
+      processors: [batch/metrics]
+      exporters: [awsemf]
+
 ```
 
 [beta]:https://github.com/open-telemetry/opentelemetry-collector#beta

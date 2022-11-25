@@ -8,11 +8,11 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
-	"fmt"
+	"github.com/TIQQE/opentelemetry-collector-extensions/extension/basicauthextension/utility"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
-	"github.com/pkg/errors"
+	"github.com/tiqqe/go-logger"
 	"os"
 	"strings"
 )
@@ -38,9 +38,10 @@ func ListThingPrincipals(thingName string) (string, error) {
 
 	test, err := IOTclient.ListThingPrincipals(context.TODO(), &b)
 	if err != nil {
-		return "", errors.Wrap(err, "Unable to ListThingPrincipals")
+		utility.LogError(err, "DescribeCertificate", "failed to ListThingPrincipals")
+		return "", err
 	}
-	println("ListThingPrincipals success")
+	logger.InfoString("ListThingPrincipals success")
 	return strings.Split(test.Principals[0], "/")[1], nil
 }
 
@@ -50,14 +51,16 @@ func DescribeCertificate(certificateId string, thingName string) ([]byte, error)
 
 	test, err := IOTclient.DescribeCertificate(context.TODO(), &b)
 	if err != nil {
-		return []byte(""), errors.Wrap(err, "Unable to DescribeCertificate")
+		utility.LogError(err, "DescribeCertificate", "failed to IOTclient.DescribeCertificate")
+		return nil, err
 	}
-	println("DescribeCertificate success")
-	println(*test.CertificateDescription.CertificatePem)
 	err = os.WriteFile(thingName, []byte(*test.CertificateDescription.CertificatePem), 0644)
 	if err != nil {
-		return []byte(""), errors.Wrap(err, "Unable to WriteFile")
+		utility.LogError(err, "DescribeCertificate", "failed to os.WriteFile")
+		return nil, err
 	}
+	logger.InfoString("DescribeCertificate success")
+	logger.InfoString(*test.CertificateDescription.CertificatePem)
 	return []byte(*test.CertificateDescription.CertificatePem), nil
 }
 
@@ -66,16 +69,18 @@ func GetCertificateByThingName(thingName string) ([]byte, error) {
 	if err != nil {
 		key, err := ListThingPrincipals(thingName)
 		if err != nil {
-			return []byte(""), errors.Wrap(err, "Unable to GetCertificateByThingName")
+			utility.LogError(err, "GetCertificateByThingName", "failed to ListThingPrincipals")
+			return nil, err
 		}
 		certNew, err := DescribeCertificate(key, thingName)
 		if err != nil {
-			return []byte(""), errors.Wrap(err, "Unable to GetCertificateByThingName")
+			utility.LogError(err, "GetCertificateByThingName", "failed to DescribeCertificate")
+			return nil, err
 		}
-		println("GetCertificateByThingName certNew success")
+		logger.InfoString("GetCertificateByThingName certNew success")
 		return certNew, nil
 	}
-	println("GetCertificateByThingName cert success")
+	logger.InfoString("GetCertificateByThingName cert success")
 	return cert, nil
 }
 
@@ -83,7 +88,8 @@ func VerifyClient(thingName string, message string, signature string) bool {
 
 	publicKey, err := getPublicKeyByThingName(thingName)
 	if err != nil {
-		panic(err)
+		utility.LogError(err, "VerifyClient", "failed to verify signature - getPublicKeyByThingName")
+		return false
 	}
 	msg := []byte(message)
 
@@ -92,7 +98,8 @@ func VerifyClient(thingName string, message string, signature string) bool {
 	msgHash := sha256.New()
 	_, err = msgHash.Write(msg)
 	if err != nil {
-		panic(err)
+		utility.LogError(err, "VerifyClient", "failed to verify signature - msgHash.Write")
+		return false
 	}
 	msgHashSum := msgHash.Sum(nil)
 
@@ -102,10 +109,10 @@ func VerifyClient(thingName string, message string, signature string) bool {
 	sig, _ := hex.DecodeString(signature)
 	err = rsa.VerifyPSS(publicKey, crypto.SHA256, msgHashSum, sig, nil)
 	if err != nil {
-		fmt.Println("could not verify signature: ", err)
+		utility.LogError(err, "VerifyClient", "failed to verify signature - VerifyPSS")
 		return false
 	}
-	fmt.Println("signature verified")
+	logger.InfoString("Success to verify signature")
 	return true
 	// If we don't get any error from the `VerifyPSS` method, that means our
 	// signature is vali
@@ -114,7 +121,8 @@ func VerifyClient(thingName string, message string, signature string) bool {
 func getPublicKeyByThingName(thingName string) (*rsa.PublicKey, error) {
 	certificate, err := GetCertificateByThingName(thingName)
 	if err != nil {
-		errors.Wrap(err, "Unable to getPublicKeyByThingName")
+		utility.LogError(err, "getPublicKeyByThingName", "failed to GetCertificateByThingName")
+		return nil, err
 	}
 	block, _ := pem.Decode(certificate)
 	var cert *x509.Certificate
