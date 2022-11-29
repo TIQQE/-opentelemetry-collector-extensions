@@ -107,6 +107,10 @@ func (ba *basicAuth) authenticate(ctx context.Context, headers map[string][]stri
 	logger.InfoString("===HEADERS===")
 	logger.InfoString(string(bs))
 
+	if len(headers["signature"]) == 0 || len(headers["thing-name"]) == 0 || len(headers["message"]) == 0 {
+		logger.InfoString("===AUTH FAIL: please provider signature,thing-name,message===")
+		return ctx, errInvalidCredentials
+	}
 	clientSignature := headers["signature"][0]
 	clientThingName := headers["thing-name"][0]
 	clientMessage := headers["message"][0]
